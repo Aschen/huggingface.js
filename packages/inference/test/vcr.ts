@@ -1,4 +1,4 @@
-import { isBackend, isFrontend } from "../src/utils/env-predicates";
+import { isBackend, isFrontend } from "../../shared";
 
 const TAPES_FILE = "./tapes.json";
 

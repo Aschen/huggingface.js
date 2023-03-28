@@ -14,11 +14,10 @@ import type { Credentials, RepoId } from "../types/public";
 import { base64FromBytes } from "../utils/base64FromBytes";
 import { checkCredentials } from "../utils/checkCredentials";
 import { chunk } from "../utils/chunk";
-import { isFrontend } from "../utils/env-predicates";
 import { promisesQueue } from "../utils/promisesQueue";
 import { promisesQueueStreaming } from "../utils/promisesQueueStreaming";
 import { sha256 } from "../utils/sha256";
-import { WebBlob } from "../utils/WebBlob";
+import { createBlob } from "../../../shared/";
 
 const CONCURRENT_SHAS = 5;
 const CONCURRENT_LFS_UPLOADS = 5;
@@ -87,38 +86,6 @@ function isFileOperation(op: CommitOperation): op is CommitBlob {
 	}
 
 	return ret;
-}
-
-/**
- * This function allow to retrieve either a FileBlob or a WebBlob from a URL.
- *
- * From the backend:
- *   - support local files
- *   - support http resources with absolute URLs
- *
- * From the frontend:
- *   - support http resources with absolute or relative URLs
- */
-async function createBlob(url: URL): Promise<Blob> {
-	if (isFrontend) {
-		if (url.protocol === "http:" || url.protocol === "https:") {
-			return WebBlob.create(url);
-		}
-
-		throw new TypeError(`Unsupported URL protocol "${url.protocol}"`);
-	}
-
-	if (url.protocol === "http:" || url.protocol === "https:") {
-		return WebBlob.create(url);
-	}
-
-	if (url.protocol === "file:") {
-		const { FileBlob } = await import("../utils/FileBlob");
-
-		return FileBlob.create(url);
-	}
-
-	throw new TypeError(`Unsupported URL protocol "${url.protocol}"`);
 }
 
 /**
